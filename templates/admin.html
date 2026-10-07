@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Paradise Food Hub - Admin</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f3f3f3;
+            color: #222;
+        }
+
+        header {
+            background: #111;
+            color: white;
+            padding: 20px;
+        }
+
+        header h1 {
+            margin: 0;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: auto;
+            padding: 20px;
+        }
+
+        .order {
+            background: white;
+            margin-bottom: 15px;
+            padding: 18px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,.08);
+        }
+
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .status {
+            font-weight: bold;
+            padding: 6px 10px;
+            border-radius: 15px;
+            background: #eee;
+        }
+
+        .details {
+            margin-top: 12px;
+            color: #555;
+            line-height: 1.6;
+        }
+
+        select {
+            margin-top: 12px;
+            padding: 10px;
+            width: 100%;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 40px;
+            background: white;
+            border-radius: 12px;
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h1>Paradise Food Hub — Admin</h1>
+</header>
+
+<div class="container">
+
+    <h2>Orders</h2>
+
+    <div id="orders"></div>
+
+</div>
+
+<script>
+
+async function loadOrders() {
+
+    const response =
+        await fetch("/orders");
+
+    const orders =
+        await response.json();
+
+    const container =
+        document.getElementById("orders");
+
+    if (!orders.length) {
+
+        container.innerHTML =
+            '<div class="empty">No orders yet.</div>';
+
+        return;
+    }
+
+    container.innerHTML = "";
+
+    orders.forEach(order => {
+
+        container.innerHTML += `
+            <div class="order">
+
+                <div class="order-header">
+
+                    <strong>
+                        Order #${order.id}
+                    </strong>
+
+                    <span class="status">
+                        ${order.status}
+                    </span>
+
+                </div>
+
+                <div class="details">
+
+                    <strong>Customer:</strong>
+                    ${order.customer_name}<br>
+
+                    <strong>Phone:</strong>
+                    ${order.phone}<br>
+
+                    <strong>Address:</strong>
+                    ${order.address}<br>
+
+                    <strong>Total:</strong>
+                    M${Number(order.total).toFixed(2)}<br>
+
+                    <strong>Created:</strong>
+                    ${order.created_at}
+
+                </div>
+
+                <select
+                    onchange="updateStatus(${order.id}, this.value)"
+                >
+
+                    <option value="PENDING"
+                        ${order.status === "PENDING" ? "selected" : ""}>
+                        PENDING
+                    </option>
+
+                    <option value="ACCEPTED"
+                        ${order.status === "ACCEPTED" ? "selected" : ""}>
+                        ACCEPTED
+                    </option>
+
+                    <option value="PREPARING"
+                        ${order.status === "PREPARING" ? "selected" : ""}>
+                        PREPARING
+                    </option>
+
+                    <option value="READY"
+                        ${order.status === "READY" ? "selected" : ""}>
+                        READY
+                    </option>
+
+                    <option value="DELIVERED"
+                        ${order.status === "DELIVERED" ? "selected" : ""}>
+                        DELIVERED
+                    </option>
+
+                    <option value="CANCELLED"
+                        ${order.status === "CANCELLED" ? "selected" : ""}>
+                        CANCELLED
+                    </option>
+
+                </select>
+
+            </div>
+        `;
+    });
+}
+
+
+async function updateStatus(orderId, status) {
+
+    const response =
+        await fetch(`/api/orders/${orderId}/status`, {
+
+            method: "PATCH",
+
+            headers: {
+                "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify({
+                status
+            })
+        });
+
+    if (!response.ok) {
+
+        alert("Unable to update order.");
+
+        return;
+    }
+
+    loadOrders();
+}
+
+
+loadOrders();
+
+setInterval(loadOrders, 10000);
+
+</script>
+
+</body>
+</html>

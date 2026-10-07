@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Paradise Food Hub</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+            color: #222;
+        }
+
+        header {
+            background: #111;
+            color: white;
+            padding: 22px 18px;
+            text-align: center;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+
+        header p {
+            margin: 7px 0 0;
+            color: #ccc;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: auto;
+            padding: 20px;
+        }
+
+        .menu-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .cart {
+            background: #111;
+            color: white;
+            padding: 9px 13px;
+            border-radius: 20px;
+        }
+
+        .item {
+            background: white;
+            padding: 18px;
+            margin-bottom: 12px;
+            border-radius: 14px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .item h3 {
+            margin: 0 0 6px;
+        }
+
+        .description {
+            color: #777;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+
+        .bottom {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .price {
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        button {
+            border: none;
+            background: #111;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        #cartBox {
+            display: none;
+            background: white;
+            margin-top: 20px;
+            padding: 18px;
+            border-radius: 14px;
+        }
+
+        .cart-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 9px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .checkout {
+            width: 100%;
+            margin-top: 15px;
+            padding: 14px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h1>🍽️ Paradise Food Hub</h1>
+    <p>Good food. Simple ordering.</p>
+</header>
+
+<div class="container">
+
+    <div class="menu-title">
+        <h2>Menu</h2>
+
+        <div class="cart">
+            Cart: <span id="cartCount">0</span>
+        </div>
+    </div>
+
+    <div id="menu"></div>
+
+    <div id="cartBox">
+
+        <h2>Your Cart</h2>
+
+        <div id="cartItems"></div>
+
+        <h3>
+            Total: M<span id="cartTotal">0.00</span>
+        </h3>
+
+        <button class="checkout" onclick="checkout()">
+            Proceed to Checkout
+        </button>
+
+    </div>
+
+</div>
+
+<script>
+
+let menu = [];
+let cart = [];
+
+async function loadMenu() {
+
+    const response = await fetch("/menu");
+
+    menu = await response.json();
+
+    const container = document.getElementById("menu");
+
+    container.innerHTML = "";
+
+    menu.forEach(item => {
+
+        container.innerHTML += `
+            <div class="item">
+
+                <h3>${item.name}</h3>
+
+                <div class="description">
+                    ${item.description}
+                </div>
+
+                <div class="bottom">
+
+                    <div class="price">
+                        M${item.price.toFixed(2)}
+                    </div>
+
+                    <button onclick="addToCart(${item.id})">
+                        Add
+                    </button>
+
+                </div>
+
+            </div>
+        `;
+    });
+}
+
+
+function addToCart(id) {
+
+    const item = menu.find(x => x.id === id);
+
+    if (!item) return;
+
+    const existing = cart.find(x => x.id === id);
+
+    if (existing) {
+
+        existing.quantity++;
+
+    } else {
+
+        cart.push({
+            ...item,
+            quantity: 1
+        });
+
+    }
+
+    updateCart();
+}
+
+
+function updateCart() {
+
+    const cartItems =
+        document.getElementById("cartItems");
+
+    let total = 0;
+    let count = 0;
+
+    cartItems.innerHTML = "";
+
+    cart.forEach(item => {
+
+        const subtotal =
+            item.price * item.quantity;
+
+        total += subtotal;
+        count += item.quantity;
+
+        cartItems.innerHTML += `
+            <div class="cart-row">
+
+                <span>
+                    ${item.name} × ${item.quantity}
+                </span>
+
+                <span>
+                    M${subtotal.toFixed(2)}
+                </span>
+
+            </div>
+        `;
+    });
+
+    document.getElementById("cartCount").textContent =
+        count;
+
+    document.getElementById("cartTotal").textContent =
+        total.toFixed(2);
+
+    document.getElementById("cartBox").style.display =
+        cart.length ? "block" : "none";
+}
+
+
+function checkout() {
+
+    if (!cart.length) {
+        alert("Your cart is empty.");
+        return;
+    }
+
+    localStorage.setItem(
+        "paradise_cart",
+        JSON.stringify(cart.map(item => ({
+            id: item.id,
+            quantity: item.quantity
+        })))
+    );
+
+    window.location.href = "/checkout";
+}
+
+
+loadMenu();
+
+</script>
+
+</body>
+</html>

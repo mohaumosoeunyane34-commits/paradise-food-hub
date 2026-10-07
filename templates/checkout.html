@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Paradise Food Hub - Checkout</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+
+        .box {
+            max-width: 500px;
+            margin: auto;
+            background: white;
+            padding: 22px;
+            border-radius: 15px;
+        }
+
+        h1 {
+            margin-top: 0;
+        }
+
+        .summary {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-top: 15px;
+            margin-bottom: 6px;
+            font-weight: bold;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-sizing: border-box;
+        }
+
+        textarea {
+            min-height: 90px;
+        }
+
+        button {
+            width: 100%;
+            margin-top: 20px;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            background: #111;
+            color: white;
+            font-size: 16px;
+        }
+
+        #message {
+            margin-top: 15px;
+            font-weight: bold;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="box">
+
+    <h1>Paradise Food Hub</h1>
+
+    <div class="summary">
+        <h2>Checkout</h2>
+
+        <div id="summary">
+            Loading order...
+        </div>
+
+        <h2>
+            Total: M<span id="total">0.00</span>
+        </h2>
+    </div>
+
+    <label for="name">Full Name</label>
+    <input id="name" type="text" placeholder="Your name">
+
+    <label for="phone">Phone Number</label>
+    <input id="phone" type="tel" placeholder="Your phone number">
+
+    <label for="address">Delivery Address</label>
+    <textarea id="address"
+              placeholder="Where should we deliver?"></textarea>
+
+    <button id="placeButton" onclick="placeOrder()">
+        Place Order
+    </button>
+
+    <div id="message"></div>
+
+</div>
+
+<script>
+
+const cart =
+    JSON.parse(
+        localStorage.getItem("paradise_cart") || "[]"
+    );
+
+const summary =
+    document.getElementById("summary");
+
+const totalElement =
+    document.getElementById("total");
+
+const placeButton =
+    document.getElementById("placeButton");
+
+
+async function loadSummary() {
+
+    if (!cart.length) {
+
+        summary.textContent =
+            "Your cart is empty.";
+
+        placeButton.disabled = true;
+
+        return;
+    }
+
+    try {
+
+        const response =
+            await fetch("/api/order-preview", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    items: cart
+                })
+            });
+
+        const result =
+            await response.json();
+
+        if (!response.ok) {
+
+            summary.textContent =
+                result.error ||
+                "Unable to load order.";
+
+            placeButton.disabled = true;
+
+            return;
+        }
+
+        summary.innerHTML =
+            result.items.map(item =>
+                `${item.name} × ${item.quantity} — M${item.subtotal.toFixed(2)}`
+            ).join("<br>");
+
+        totalElement.textContent =
+            result.total.toFixed(2);
+
+    } catch (error) {
+
+        summary.textContent =
+            "Unable to connect to Paradise Food Hub.";
+
+        placeButton.disabled = true;
+    }
+}
+
+
+async function placeOrder() {
+
+    const customer_name =
+        document.getElementById("name").value.trim();
+
+    const phone =
+        document.getElementById("phone").value.trim();
+
+    const address =
+        document.getElementById("address").value.trim();
+
+    const message =
+        document.getElementById("message");
+
+    if (!customer_name || !phone || !address) {
+
+        message.textContent =
+            "Please complete all fields.";
+
+        return;
+    }
+
+    placeButton.disabled = true;
+
+    placeButton.textContent =
+        "Processing...";
+
+    message.textContent = "";
+
+    try {
+
+        const response =
+            await fetch("/api/orders", {
+
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify({
+                    customer_name,
+                    phone,
+                    address,
+                    items: cart
+                })
+            });
+
+        const result =
+            await response.json();
+
+        if (response.ok) {
+
+            localStorage.removeItem(
+                "paradise_cart"
+            );
+
+            message.textContent =
+                "Order placed! Opening receipt...";
+
+            setTimeout(() => {
+
+                window.location.href =
+                    "/receipt/" + result.order_id;
+
+            }, 500);
+
+        } else {
+
+            message.textContent =
+                result.error ||
+                "Order failed.";
+
+            placeButton.disabled = false;
+
+            placeButton.textContent =
+                "Place Order";
+        }
+
+    } catch (error) {
+
+        message.textContent =
+            "Unable to connect to the server.";
+
+        placeButton.disabled = false;
+
+        placeButton.textContent =
+            "Place Order";
+    }
+}
+
+
+loadSummary();
+
+</script>
+
+</body>
+</html>
