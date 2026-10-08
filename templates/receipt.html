@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Paradise Food Hub — Receipt</title>
+    <title>Paradise Food Hub - Order Confirmation</title>
 
     <style>
         * {
@@ -14,62 +14,83 @@
         body {
             margin: 0;
             padding: 20px;
-            background: #f2f2f2;
             font-family: Arial, sans-serif;
+            background: #f5f5f5;
             color: #222;
         }
 
-        .receipt {
-            max-width: 520px;
-            margin: auto;
+        .container {
+            max-width: 600px;
+            margin: 30px auto;
+        }
+
+        .card {
             background: white;
+            border-radius: 15px;
             padding: 25px;
-            border-radius: 16px;
-            box-shadow: 0 5px 25px rgba(0,0,0,.08);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
         }
 
-        .brand {
+        .success {
             text-align: center;
-            border-bottom: 2px dashed #ddd;
-            padding-bottom: 18px;
+            font-size: 45px;
         }
 
-        .brand h1 {
-            margin: 0;
-            font-size: 28px;
+        h1 {
+            text-align: center;
+            margin-bottom: 5px;
         }
 
-        .brand p {
-            margin: 6px 0 0;
-            color: #777;
+        .subtitle {
+            text-align: center;
+            color: #666;
         }
 
         .order-number {
+            background: #111;
+            color: white;
+            padding: 18px;
+            border-radius: 10px;
             text-align: center;
             margin: 20px 0;
-            font-size: 20px;
-            font-weight: bold;
         }
 
-        .details {
+        .order-number small {
+            display: block;
+            opacity: 0.8;
+            margin-bottom: 5px;
+        }
+
+        .order-number strong {
+            font-size: 25px;
+        }
+
+        .info {
             background: #f7f7f7;
             padding: 15px;
             border-radius: 10px;
-            line-height: 1.7;
+            margin: 15px 0;
         }
 
-        .details strong {
-            display: inline-block;
-            min-width: 75px;
+        .row {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            padding: 8px 0;
+            border-bottom: 1px solid #ddd;
         }
 
-        .status {
-            text-align: center;
-            margin: 20px 0;
-            padding: 12px;
-            border-radius: 10px;
-            background: #eee;
+        .row:last-child {
+            border-bottom: none;
+        }
+
+        .label {
+            color: #666;
+        }
+
+        .value {
             font-weight: bold;
+            text-align: right;
         }
 
         .items {
@@ -77,42 +98,25 @@
         }
 
         .item {
-            display: grid;
-            grid-template-columns: 1fr auto;
-            gap: 10px;
-            padding: 12px 0;
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            padding: 10px 0;
             border-bottom: 1px solid #eee;
         }
 
-        .item-name {
-            font-weight: bold;
-        }
-
-        .item-meta {
-            color: #777;
-            font-size: 13px;
-            margin-top: 3px;
-        }
-
-        .item-price {
-            font-weight: bold;
-        }
-
         .total {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 20px;
-            padding-top: 18px;
-            border-top: 2px solid #222;
-            font-size: 22px;
+            font-size: 23px;
             font-weight: bold;
+            text-align: right;
+            margin-top: 18px;
         }
 
-        .date {
-            text-align: center;
-            color: #777;
-            margin-top: 18px;
-            font-size: 13px;
+        .location {
+            background: #fff4d6;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
         }
 
         .buttons {
@@ -121,50 +125,47 @@
             margin-top: 25px;
         }
 
-        .buttons a,
-        .buttons button {
+        button,
+        a {
             flex: 1;
             padding: 13px;
-            border-radius: 9px;
-            border: none;
+            border-radius: 8px;
             text-align: center;
             text-decoration: none;
             font-weight: bold;
             cursor: pointer;
         }
 
-        .menu-button {
+        button {
+            border: none;
             background: #111;
             color: white;
         }
 
-        .print-button {
+        a {
             background: #eee;
-            color: #111;
+            color: #222;
         }
 
-        .footer {
+        .error {
             text-align: center;
-            margin-top: 25px;
-            padding-top: 18px;
-            border-top: 2px dashed #ddd;
-            color: #777;
-            font-size: 13px;
+            color: #b00020;
+            padding: 20px;
         }
 
-        @media print {
-            body {
-                background: white;
-                padding: 0;
-            }
-
-            .receipt {
-                box-shadow: none;
-                max-width: none;
-            }
+        @media (max-width: 500px) {
 
             .buttons {
-                display: none;
+                flex-direction: column;
+            }
+
+            .row {
+                flex-direction: column;
+                gap: 3px;
+            }
+
+            .value {
+                text-align: left;
             }
         }
     </style>
@@ -172,29 +173,36 @@
 
 <body>
 
-<div class="receipt">
+<div class="container">
 
-    <div class="brand">
-        <h1>🍽️ Paradise Food Hub</h1>
-        <p>Good food. Simple ordering.</p>
-    </div>
+    <div class="card" id="receipt">
 
-    <div id="receipt">
-        Loading receipt...
+        <div class="success">✅</div>
+
+        <h1>Order Received!</h1>
+
+        <p class="subtitle">
+            Thank you for ordering from Paradise Food Hub.
+        </p>
+
+        <div id="content">
+            Loading order...
+        </div>
+
     </div>
 
 </div>
 
 <script>
 
-const pathParts =
-    window.location.pathname.split("/");
-
 const orderId =
-    pathParts[pathParts.length - 1];
+    window.location.pathname.split("/").pop();
 
 
-async function loadReceipt() {
+async function loadOrder() {
+
+    const content =
+        document.getElementById("content");
 
     try {
 
@@ -204,117 +212,199 @@ async function loadReceipt() {
         const data =
             await response.json();
 
-        if (!response.ok || data.error) {
+        if (!response.ok) {
 
-            document.getElementById("receipt").innerHTML = `
-                <p style="text-align:center;">
-                    ${data.error || "Unable to load receipt."}
-                </p>
-            `;
-
-            return;
+            throw new Error(
+                data.error || "Order not found."
+            );
         }
 
-        const order = data.order;
-        const items = data.items;
+        const order =
+            data.order;
 
-        let itemsHTML = "";
+        const items =
+            data.items || [];
+
+
+        let itemsHtml = "";
 
         items.forEach(item => {
 
-            itemsHTML += `
+            itemsHtml += `
                 <div class="item">
 
-                    <div>
-                        <div class="item-name">
-                            ${item.name}
-                        </div>
+                    <span>
+                        ${escapeHtml(item.name)}
+                        × ${item.quantity}
+                    </span>
 
-                        <div class="item-meta">
-                            ${item.quantity} × M${Number(item.price).toFixed(2)}
-                        </div>
-                    </div>
-
-                    <div class="item-price">
+                    <strong>
                         M${Number(item.subtotal).toFixed(2)}
-                    </div>
+                    </strong>
 
                 </div>
             `;
+
         });
 
-        document.getElementById("receipt").innerHTML = `
+
+        content.innerHTML = `
 
             <div class="order-number">
-                Order #${order.id}
-            </div>
 
-            <div class="details">
+                <small>ORDER NUMBER</small>
 
-                <div>
-                    <strong>Customer:</strong>
-                    ${order.customer_name}
-                </div>
-
-                <div>
-                    <strong>Phone:</strong>
-                    ${order.phone}
-                </div>
-
-                <div>
-                    <strong>Address:</strong>
-                    ${order.address}
-                </div>
+                <strong>#${order.id}</strong>
 
             </div>
 
-            <div class="status">
-                STATUS: ${order.status}
+
+            <div class="info">
+
+                <div class="row">
+                    <span class="label">
+                        Customer
+                    </span>
+
+                    <span class="value">
+                        ${escapeHtml(order.customer_name)}
+                    </span>
+                </div>
+
+
+                <div class="row">
+                    <span class="label">
+                        Phone
+                    </span>
+
+                    <span class="value">
+                        ${escapeHtml(order.phone)}
+                    </span>
+                </div>
+
+
+                <div class="row">
+                    <span class="label">
+                        Order Type
+                    </span>
+
+                    <span class="value">
+                        ${escapeHtml(order.order_type || "DELIVERY")}
+                    </span>
+                </div>
+
+
+                <div class="row">
+                    <span class="label">
+                        Address
+                    </span>
+
+                    <span class="value">
+                        ${escapeHtml(order.address || "Pickup")}
+                    </span>
+                </div>
+
+
+                <div class="row">
+                    <span class="label">
+                        Payment
+                    </span>
+
+                    <span class="value">
+                        ${escapeHtml(order.payment_method || "CASH")}
+                    </span>
+                </div>
+
+
+                <div class="row">
+                    <span class="label">
+                        Payment Status
+                    </span>
+
+                    <span class="value">
+                        ${escapeHtml(order.payment_status || "UNPAID")}
+                    </span>
+                </div>
+
+
+                <div class="row">
+                    <span class="label">
+                        Order Status
+                    </span>
+
+                    <span class="value">
+                        ${escapeHtml(order.status)}
+                    </span>
+                </div>
+
             </div>
+
 
             <div class="items">
-                ${itemsHTML}
+
+                <h2>Order Items</h2>
+
+                ${itemsHtml}
+
+                <div class="total">
+                    Total: M${Number(order.total).toFixed(2)}
+                </div>
+
             </div>
 
-            <div class="total">
-                <span>Total</span>
-                <span>M${Number(order.total).toFixed(2)}</span>
+
+            <div class="location">
+
+                📍 <strong>Paradise Food Hub</strong>
+
+                <br><br>
+
+                Ha Thamae, next to Shelly Brown,
+                Maseru, Lesotho
+
             </div>
 
-            <div class="date">
-                Order placed: ${order.created_at}
-            </div>
 
             <div class="buttons">
 
-                <a class="menu-button" href="/">
-                    ← Menu
-                </a>
-
-                <button class="print-button"
-                        onclick="window.print()">
-                    🖨️ Print
+                <button onclick="window.print()">
+                    Print Receipt
                 </button>
 
+                <a href="/">
+                    Back to Menu
+                </a>
+
             </div>
 
-            <div class="footer">
-                Thank you for ordering from Paradise Food Hub ❤️
-            </div>
         `;
 
     } catch (error) {
 
-        document.getElementById("receipt").innerHTML = `
-            <p style="text-align:center;">
-                Unable to connect to Paradise Food Hub.
-            </p>
+        content.innerHTML = `
+            <div class="error">
+                ${escapeHtml(error.message)}
+            </div>
         `;
+
     }
+
 }
 
 
-loadReceipt();
+function escapeHtml(value) {
+
+    const div =
+        document.createElement("div");
+
+    div.textContent =
+        value == null ? "" : String(value);
+
+    return div.innerHTML;
+}
+
+
+loadOrder();
 
 </script>
 
