@@ -6,80 +6,166 @@
     <title>Paradise Food Hub</title>
 
     <style>
+        :root {
+            --c34-black: #0b0f0d;
+            --c34-dark: #121815;
+            --c34-green: #1f7a4d;
+            --c34-green-light: #35a866;
+            --c34-orange: #f28c28;
+            --c34-cream: #fffaf0;
+            --c34-text: #202522;
+            --c34-muted: #68736d;
+            --c34-white: #ffffff;
+            --c34-border: #e7dfd0;
+            --c34-shadow: 0 14px 35px rgba(11, 15, 13, 0.10);
+        }
+
         * {
             box-sizing: border-box;
         }
 
+        html {
+            scroll-behavior: smooth;
+        }
+
         body {
             margin: 0;
-            font-family: Arial, sans-serif;
-            background: #f7f7f7;
-            color: #222;
+            font-family: Arial, Helvetica, sans-serif;
+            background:
+                radial-gradient(circle at top right, rgba(242,140,40,0.10), transparent 30%),
+                linear-gradient(180deg, #fffdf8 0%, var(--c34-cream) 100%);
+            color: var(--c34-text);
         }
 
         header {
-            background: #111;
+            position: relative;
+            overflow: hidden;
+            background:
+                radial-gradient(circle at 85% 20%, rgba(242,140,40,0.28), transparent 28%),
+                linear-gradient(135deg, var(--c34-black), var(--c34-green));
             color: white;
-            padding: 20px;
+            padding: 34px 20px 30px;
             text-align: center;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.18);
+        }
+
+        header::after {
+            content: "C34";
+            position: absolute;
+            right: 18px;
+            bottom: -28px;
+            font-size: 110px;
+            font-weight: 900;
+            letter-spacing: -8px;
+            opacity: 0.06;
         }
 
         header h1 {
+            position: relative;
+            z-index: 1;
             margin: 0 0 8px;
+            font-size: clamp(30px, 7vw, 48px);
+            letter-spacing: -1px;
         }
 
         header p {
+            position: relative;
+            z-index: 1;
             margin: 0;
-            opacity: 0.8;
+            opacity: 0.9;
+            font-size: 14px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
         }
 
         .location {
             text-align: center;
-            padding: 12px;
-            background: white;
+            padding: 13px;
+            background: var(--c34-white);
+            color: var(--c34-muted);
             font-size: 14px;
+            border-bottom: 1px solid var(--c34-border);
         }
 
         main {
-            max-width: 900px;
+            max-width: 1050px;
             margin: auto;
-            padding: 20px;
+            padding: 28px 18px 40px;
         }
 
         .menu-title {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 15px;
+            gap: 15px;
+            margin-bottom: 22px;
+        }
+
+        .menu-title h2 {
+            margin: 0;
+            color: var(--c34-black);
+            font-size: clamp(24px, 5vw, 32px);
+        }
+
+        .menu-title h2::after {
+            content: "";
+            color: var(--c34-orange);
+            font-size: 11px;
+            letter-spacing: 1.5px;
+            vertical-align: middle;
         }
 
         .cart {
-            background: #111;
+            background: var(--c34-green);
             color: white;
-            padding: 10px 14px;
-            border-radius: 8px;
+            padding: 11px 16px;
+            border-radius: 999px;
+            font-weight: bold;
+            box-shadow: 0 6px 16px rgba(31,122,77,0.22);
+            white-space: nowrap;
         }
 
         #menu {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 15px;
+            gap: 20px;
         }
 
         .item {
-            background: white;
-            border-radius: 12px;
-            padding: 18px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            position: relative;
+            overflow: hidden;
+            background: rgba(255,255,255,0.96);
+            border: 1px solid var(--c34-border);
+            border-radius: 18px;
+            padding: 21px;
+            box-shadow: var(--c34-shadow);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .item::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--c34-green), var(--c34-orange));
+        }
+
+        .item:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 18px 40px rgba(11,15,13,0.14);
         }
 
         .item h3 {
-            margin-top: 0;
+            margin: 4px 0 10px;
+            color: var(--c34-black);
+            font-size: 20px;
         }
 
         .description {
-            color: #666;
-            line-height: 1.5;
+            color: var(--c34-muted);
+            line-height: 1.55;
             min-height: 50px;
         }
 
@@ -87,62 +173,103 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-top: 18px;
+            gap: 12px;
+            margin-top: 20px;
         }
 
         .price {
-            font-weight: bold;
-            font-size: 20px;
+            color: var(--c34-green);
+            font-weight: 900;
+            font-size: 21px;
         }
 
         button {
             border: none;
-            border-radius: 8px;
-            padding: 10px 15px;
-            background: #111;
+            border-radius: 10px;
+            padding: 11px 16px;
+            background: linear-gradient(135deg, var(--c34-green), var(--c34-green-light));
             color: white;
             cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 6px 14px rgba(31,122,77,0.18);
+            transition: transform 0.15s ease, opacity 0.15s ease;
         }
 
         button:hover {
-            opacity: 0.85;
+            opacity: 0.92;
+            transform: translateY(-1px);
         }
 
         #cartBox {
             display: none;
-            background: white;
-            margin-top: 25px;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            background: var(--c34-white);
+            margin-top: 30px;
+            padding: 22px;
+            border: 1px solid var(--c34-border);
+            border-radius: 18px;
+            box-shadow: var(--c34-shadow);
         }
 
         .cart-row {
             display: flex;
             justify-content: space-between;
             gap: 10px;
-            padding: 10px 0;
-            border-bottom: 1px solid #ddd;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--c34-border);
         }
 
         .checkout-button {
             width: 100%;
-            margin-top: 15px;
-            padding: 14px;
+            margin-top: 16px;
+            padding: 15px;
             font-size: 16px;
+            background: linear-gradient(135deg, var(--c34-orange), #e87510);
         }
 
         .error {
-            background: #ffe5e5;
-            color: #a00;
+            background: #fff0ed;
+            color: #a33b2b;
             padding: 15px;
-            border-radius: 8px;
+            border: 1px solid #f1c9c1;
+            border-radius: 12px;
         }
 
         footer {
             text-align: center;
-            padding: 30px 15px;
-            color: #666;
+            padding: 34px 15px;
+            background: #090909;
+            color: #c8c8c8;
+        }
+
+        footer::after { content: "CANNIBAL 34"; display: block; margin-top: 10px; color: #d4af37; font-weight: 900; letter-spacing: 3px; }\n\nfooter strong {
+            color: white;
+        }
+
+        @media (max-width: 600px) {
+            main {
+                padding: 22px 14px 32px;
+            }
+
+            .menu-title {
+                align-items: flex-start;
+            }
+
+            .menu-title h2::after {
+                display: block;
+                margin-top: 5px;
+            }
+
+            .cart {
+                padding: 10px 13px;
+            }
+
+            #menu {
+                grid-template-columns: 1fr;
+            }
+
+            .item {
+                padding: 19px;
+            }
         }
     </style>
 </head>
