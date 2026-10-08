@@ -29,7 +29,11 @@ def init_db():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             customer_name TEXT NOT NULL,
             phone TEXT NOT NULL,
-            address TEXT NOT NULL,
+            address TEXT,
+            order_type TEXT DEFAULT 'DELIVERY',
+            notes TEXT,
+            payment_method TEXT DEFAULT 'CASH',
+            payment_status TEXT DEFAULT 'UNPAID',
             total REAL NOT NULL,
             status TEXT DEFAULT 'PENDING',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -47,6 +51,28 @@ def init_db():
             FOREIGN KEY(menu_item_id) REFERENCES menu_items(id)
         )
     """)
+
+    # Add new columns to older databases
+    columns = {
+        "address": "TEXT",
+        "order_type": "TEXT DEFAULT 'DELIVERY'",
+        "notes": "TEXT",
+        "payment_method": "TEXT DEFAULT 'CASH'",
+        "payment_status": "TEXT DEFAULT 'UNPAID'"
+    }
+
+    existing_columns = {
+        row["name"]
+        for row in conn.execute(
+            "PRAGMA table_info(orders)"
+        ).fetchall()
+    }
+
+    for column, definition in columns.items():
+        if column not in existing_columns:
+            conn.execute(
+                f"ALTER TABLE orders ADD COLUMN {column} {definition}"
+            )
 
     conn.commit()
     conn.close()

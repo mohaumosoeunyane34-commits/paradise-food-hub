@@ -144,6 +144,7 @@ def order_preview():
         conn.close()
 
 
+
 @app.post("/api/orders")
 def create_order():
 
@@ -157,14 +158,45 @@ def create_order():
         data.get("phone", "")
     ).strip()
 
+    order_type = str(
+        data.get("order_type", "DELIVERY")
+    ).strip().upper()
+
     address = str(
         data.get("address", "")
     ).strip()
 
-    if not customer_name or not phone or not address:
+    notes = str(
+        data.get("notes", "")
+    ).strip()
 
+    payment_method = str(
+        data.get("payment_method", "CASH")
+    ).strip().upper()
+
+    if not customer_name or not phone:
         return jsonify({
-            "error": "Name, phone and address are required."
+            "error": "Name and phone are required."
+        }), 400
+
+    if order_type not in {"PICKUP", "DELIVERY"}:
+        return jsonify({
+            "error": "Order type must be PICKUP or DELIVERY."
+        }), 400
+
+    if order_type == "DELIVERY" and not address:
+        return jsonify({
+            "error": "Delivery address is required."
+        }), 400
+
+    allowed_payment_methods = {
+        "CASH",
+        "MOPAY"
+    }
+
+    if payment_method not in allowed_payment_methods:
+        return jsonify({
+            "error": "Invalid payment method."
         }), 400
 
     conn = get_db()
@@ -176,14 +208,30 @@ def create_order():
             data.get("items", [])
         )
 
+        payment_status = "UNPAID"
+
         cursor = conn.execute("""
             INSERT INTO orders
-            (customer_name, phone, address, total, status)
-            VALUES (?, ?, ?, ?, ?)
+            (
+                customer_name,
+                phone,
+                address,
+                order_type,
+                notes,
+                payment_method,
+                payment_status,
+                total,
+                status
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             customer_name,
             phone,
-            address,
+            address if order_type == "DELIVERY" else "",
+            order_type,
+            notes,
+            payment_method,
+            payment_status,
             total,
             "PENDING"
         ))
@@ -209,6 +257,7 @@ def create_order():
             "success": True,
             "order_id": order_id,
             "status": "PENDING",
+            "payment_status": payment_status,
             "total": total
         }), 201
 
@@ -231,7 +280,6 @@ def create_order():
     finally:
 
         conn.close()
-
 
 @app.get("/api/orders/<int:order_id>")
 def get_order(order_id):
@@ -287,10 +335,19 @@ def orders():
     conn = get_db()
 
     rows = conn.execute("""
-        SELECT id, customer_name, phone, address,
-               total, status, created_at
-        FROM orders
-        ORDER BY id DESC
+SELECT
+    id,
+    customer_name,
+    phone,
+    address,
+    order_type,
+    notes,
+    payment_method,
+    payment_status,
+    total,
+    status,
+    created_at
+FROM orders
     """).fetchall()
 
     conn.close()

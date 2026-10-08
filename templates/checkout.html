@@ -18,55 +18,82 @@
             max-width: 500px;
             margin: auto;
             background: white;
-            padding: 22px;
+            padding: 25px;
             border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
         }
 
         h1 {
             margin-top: 0;
         }
 
-        .summary {
-            background: #f5f5f5;
-            padding: 15px;
-            border-radius: 10px;
+        .location {
+            background: #fff4d6;
+            padding: 12px;
+            border-radius: 8px;
             margin-bottom: 20px;
         }
 
         label {
             display: block;
             margin-top: 15px;
-            margin-bottom: 6px;
             font-weight: bold;
         }
 
-        input, textarea {
+        input,
+        textarea,
+        select {
             width: 100%;
+            box-sizing: border-box;
             padding: 12px;
+            margin-top: 6px;
             border: 1px solid #ccc;
             border-radius: 8px;
-            box-sizing: border-box;
+            font-size: 16px;
         }
 
         textarea {
-            min-height: 90px;
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .summary {
+            background: #f7f7f7;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .total {
+            font-size: 20px;
+            font-weight: bold;
+            margin-top: 10px;
         }
 
         button {
             width: 100%;
-            margin-top: 20px;
             padding: 14px;
+            margin-top: 20px;
             border: none;
             border-radius: 8px;
             background: #111;
             color: white;
-            font-size: 16px;
+            font-size: 17px;
+            font-weight: bold;
+            cursor: pointer;
         }
 
-        #message {
+        button:disabled {
+            opacity: 0.6;
+        }
+
+        .error {
+            color: #b00020;
             margin-top: 15px;
-            font-weight: bold;
-            text-align: center;
+        }
+
+        .hidden {
+            display: none;
         }
     </style>
 </head>
@@ -77,69 +104,139 @@
 
     <h1>Paradise Food Hub</h1>
 
-    <div class="summary">
-        <h2>Checkout</h2>
-
-        <div id="summary">
-            Loading order...
-        </div>
-
-        <h2>
-            Total: M<span id="total">0.00</span>
-        </h2>
+    <div class="location">
+        📍 <strong>Find us:</strong><br>
+        Ha Thamae, next to Shelly Brown, Maseru
     </div>
 
-    <label for="name">Full Name</label>
-    <input id="name" type="text" placeholder="Your name">
+    <h2>Checkout</h2>
 
-    <label for="phone">Phone Number</label>
-    <input id="phone" type="tel" placeholder="Your phone number">
+    <div class="summary">
+        <h3>Your Order</h3>
+        <div id="order-items">Loading order...</div>
+        <div class="total">
+            Total: M<span id="total">0.00</span>
+        </div>
+    </div>
 
-    <label for="address">Delivery Address</label>
-    <textarea id="address"
-              placeholder="Where should we deliver?"></textarea>
+    <form id="checkout-form">
 
-    <button id="placeButton" onclick="placeOrder()">
-        Place Order
-    </button>
+        <label for="name">Full Name</label>
+        <input
+            type="text"
+            id="name"
+            required
+            placeholder="Enter your full name"
+        >
 
-    <div id="message"></div>
+        <label for="phone">Phone Number</label>
+        <input
+            type="tel"
+            id="phone"
+            required
+            placeholder="+266..."
+        >
+
+        <label for="order-type">Order Type</label>
+        <select id="order-type" required>
+            <option value="DELIVERY">Delivery</option>
+            <option value="PICKUP">Pickup</option>
+        </select>
+
+        <div id="address-section">
+
+            <label for="address">Delivery Address</label>
+
+            <textarea
+                id="address"
+                placeholder="Enter your delivery address"
+            ></textarea>
+
+        </div>
+
+        <label for="notes">Special Instructions</label>
+
+        <textarea
+            id="notes"
+            placeholder="Example: No onions, extra sauce..."
+        ></textarea>
+
+        <label for="payment-method">Payment Method</label>
+
+        <select id="payment-method" required>
+            <option value="CASH">Cash</option>
+            <option value="MOPAY">MoPay</option>
+        </select>
+
+        <button type="submit" id="place-order">
+            Place Order
+        </button>
+
+        <div id="error" class="error"></div>
+
+    </form>
 
 </div>
 
 <script>
 
-const cart =
-    JSON.parse(
-        localStorage.getItem("paradise_cart") || "[]"
-    );
+const cart = JSON.parse(
+    localStorage.getItem("paradise_cart") || "[]"
+);
 
-const summary =
-    document.getElementById("summary");
+const orderItems = document.getElementById("order-items");
+const totalElement = document.getElementById("total");
+const orderType = document.getElementById("order-type");
+const addressSection = document.getElementById("address-section");
+const address = document.getElementById("address");
+const form = document.getElementById("checkout-form");
+const errorElement = document.getElementById("error");
+const button = document.getElementById("place-order");
 
-const totalElement =
-    document.getElementById("total");
 
-const placeButton =
-    document.getElementById("placeButton");
+function updateAddressVisibility() {
+
+    if (orderType.value === "PICKUP") {
+
+        addressSection.classList.add("hidden");
+        address.required = false;
+
+    } else {
+
+        addressSection.classList.remove("hidden");
+        address.required = true;
+
+    }
+}
 
 
-async function loadSummary() {
+orderType.addEventListener(
+    "change",
+    updateAddressVisibility
+);
+
+updateAddressVisibility();
+
+
+async function loadOrder() {
 
     if (!cart.length) {
 
-        summary.textContent =
-            "Your cart is empty.";
+        orderItems.innerHTML =
+            "<p>Your cart is empty.</p>";
 
-        placeButton.disabled = true;
+        totalElement.textContent = "0.00";
+
+        button.disabled = true;
 
         return;
     }
 
     try {
 
-        const response =
-            await fetch("/api/order-preview", {
+        const response = await fetch(
+            "/api/order-preview",
+            {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -147,133 +244,123 @@ async function loadSummary() {
                 body: JSON.stringify({
                     items: cart
                 })
-            });
+            }
+        );
 
-        const result =
-            await response.json();
+        const data = await response.json();
 
         if (!response.ok) {
 
-            summary.textContent =
-                result.error ||
-                "Unable to load order.";
+            throw new Error(
+                data.error || "Unable to load order."
+            );
 
-            placeButton.disabled = true;
-
-            return;
         }
 
-        summary.innerHTML =
-            result.items.map(item =>
-                `${item.name} × ${item.quantity} — M${item.subtotal.toFixed(2)}`
-            ).join("<br>");
+        orderItems.innerHTML = "";
+
+        data.items.forEach(item => {
+
+            const row = document.createElement("div");
+
+            row.textContent =
+                `${item.name} × ${item.quantity} — M${Number(item.subtotal).toFixed(2)}`;
+
+            orderItems.appendChild(row);
+
+        });
 
         totalElement.textContent =
-            result.total.toFixed(2);
+            Number(data.total).toFixed(2);
 
     } catch (error) {
 
-        summary.textContent =
-            "Unable to connect to Paradise Food Hub.";
+        errorElement.textContent =
+            error.message;
 
-        placeButton.disabled = true;
+        button.disabled = true;
     }
 }
 
 
-async function placeOrder() {
+form.addEventListener("submit", async function(event) {
 
-    const customer_name =
-        document.getElementById("name").value.trim();
+    event.preventDefault();
 
-    const phone =
-        document.getElementById("phone").value.trim();
+    errorElement.textContent = "";
 
-    const address =
-        document.getElementById("address").value.trim();
+    button.disabled = true;
+    button.textContent = "Placing Order...";
 
-    const message =
-        document.getElementById("message");
+    const payload = {
 
-    if (!customer_name || !phone || !address) {
+        customer_name:
+            document.getElementById("name").value.trim(),
 
-        message.textContent =
-            "Please complete all fields.";
+        phone:
+            document.getElementById("phone").value.trim(),
 
-        return;
-    }
+        order_type:
+            orderType.value,
 
-    placeButton.disabled = true;
+        address:
+            address.value.trim(),
 
-    placeButton.textContent =
-        "Processing...";
+        notes:
+            document.getElementById("notes").value.trim(),
 
-    message.textContent = "";
+        payment_method:
+            document.getElementById("payment-method").value,
+
+        items: cart
+    };
+
 
     try {
 
-        const response =
-            await fetch("/api/orders", {
-
+        const response = await fetch(
+            "/api/orders",
+            {
                 method: "POST",
 
                 headers: {
                     "Content-Type": "application/json"
                 },
 
-                body: JSON.stringify({
-                    customer_name,
-                    phone,
-                    address,
-                    items: cart
-                })
-            });
+                body: JSON.stringify(payload)
+            }
+        );
 
-        const result =
-            await response.json();
+        const data = await response.json();
 
-        if (response.ok) {
+        if (!response.ok) {
 
-            localStorage.removeItem(
-                "paradise_cart"
+            throw new Error(
+                data.error || "Unable to place order."
             );
 
-            message.textContent =
-                "Order placed! Opening receipt...";
-
-            setTimeout(() => {
-
-                window.location.href =
-                    "/receipt/" + result.order_id;
-
-            }, 500);
-
-        } else {
-
-            message.textContent =
-                result.error ||
-                "Order failed.";
-
-            placeButton.disabled = false;
-
-            placeButton.textContent =
-                "Place Order";
         }
+
+        localStorage.removeItem(
+            "paradise_cart"
+        );
+
+        window.location.href =
+            "/receipt/" + data.order_id;
 
     } catch (error) {
 
-        message.textContent =
-            "Unable to connect to the server.";
+        errorElement.textContent =
+            error.message;
 
-        placeButton.disabled = false;
-
-        placeButton.textContent =
-            "Place Order";
+        button.disabled = false;
+        button.textContent = "Place Order";
     }
-}
+
+});
 
 
-loadSummary();
+loadOrder();
 
 </script>
 
